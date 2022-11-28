@@ -1,5 +1,6 @@
 package com.securite.springjwt.controllers;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -7,21 +8,19 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.securite.springjwt.security.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.securite.springjwt.models.ERole;
 import com.securite.springjwt.models.Role;
@@ -54,8 +53,11 @@ public class AuthController {
   @Autowired
   JwtUtils jwtUtils;
 
+  @Autowired
+  UserService userService;
 
-  @PreAuthorize("hasRole('ADMIN')")
+
+
   @PostMapping("/signin")
   public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -73,12 +75,15 @@ public class AuthController {
         .map(item -> item.getAuthority())
         .collect(Collectors.toList());
 
-    String rooool= "ROLE_User";
+    List<String> rooool= new ArrayList<>();
+
+    rooool.add("ROLE_USER");
+
     if (roles.equals(rooool)){
       return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body("Hello User");
     }
     else
-      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body("Hello Admin, Hello User");
+      return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body("Hello , Hello User");
 
 
        /* return ResponseEntity.ok(new JwtResponse(jwt,
@@ -89,6 +94,7 @@ public class AuthController {
   }
 
   @PostMapping("/signup")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
     if (userRepository.existsByUsername(signUpRequest.getUsername())) {
       return ResponseEntity
@@ -111,9 +117,10 @@ public class AuthController {
     Set<Role> roles = new HashSet<>();
 
     if (strRoles == null) {
-      Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+
+      Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
           .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-      roles.add(userRole);
+      roles.add(adminRole);
     } else {
       strRoles.forEach(role -> {
         switch (role) {
@@ -123,12 +130,7 @@ public class AuthController {
           roles.add(adminRole);
 
           break;
-        case "mod":
-          Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-              .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-          roles.add(modRole);
 
-          break;
         default:
           Role userRole = roleRepository.findByName(ERole.ROLE_USER)
               .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
@@ -141,5 +143,29 @@ public class AuthController {
     userRepository.save(user);
 
     return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+  }
+
+//afficher tout les user
+  @GetMapping("/read")
+  //@PostAuthorize("hasRole('USER') or hasRole('ADMIN')")
+  public List<User> read() {
+    return userRepository.findAll();
+
+  }
+//modif
+  @PutMapping("/update/{id}")
+  @PostAuthorize("hasRole('ADMIN')")
+  public User update(@PathVariable Long id, @RequestBody User user) {
+    return userService.modif(id, user);
+  }
+  //sup
+
+  @DeleteMapping("/delete/{id}")
+  @PostAuthorize("hasRole('ADMIN')")
+  public String delete(@PathVariable Long id ) {
+    Object ess = null;
+    if (id.equals(ess)) return "ce utilisateur n'existe  pas";
+    else
+    return userService.supprimer(id);
   }
 }

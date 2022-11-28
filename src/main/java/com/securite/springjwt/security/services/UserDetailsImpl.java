@@ -13,6 +13,20 @@ import com.securite.springjwt.models.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class UserDetailsImpl implements UserDetails {
+
+  /*UserDetailscontient les informations nécessaires (telles que : nom d'utilisateur, mot de passe, autorités)
+          pour construire un objet d'authentification.*/
+
+  /*l'interface publique UserDetails
+étend Serializable
+Fournit des informations utilisateur de base.
+Les implémentations ne sont pas utilisées directement par Spring Security
+à des fins de sécurité. Ils stockent simplement des informations utilisateur
+ qui sont ensuite encapsulées dans des Authentication objets. Cela permet aux
+ informations utilisateur non liées à la sécurité (telles que les adresses e-mail,
+les numéros de téléphone, etc.) d'être stockées dans un emplacement pratique.*/
+
+
   private static final long serialVersionUID = 1L;
 
   private Long id;
@@ -28,6 +42,7 @@ public class UserDetailsImpl implements UserDetails {
 
   public UserDetailsImpl(Long id, String username, String email, String password,
       Collection<? extends GrantedAuthority> authorities) {
+    //Renvoie les droits accordés à l'utilisateur. Impossible de revenir null.
     this.id = id;
     this.username = username;
     this.email = email;
@@ -64,6 +79,7 @@ public class UserDetailsImpl implements UserDetails {
   @Override
   public String getPassword() {
     return password;
+    //Renvoie le mot de passe utilisé pour authentifier l'utilisateur.
   }
 
   @Override
@@ -74,21 +90,26 @@ public class UserDetailsImpl implements UserDetails {
   @Override
   public boolean isAccountNonExpired() {
     return true;
+
+    //Indique si le compte de l'utilisateur a expiré.
   }
 
   @Override
   public boolean isAccountNonLocked() {
     return true;
+    //Indique si l'utilisateur est verrouillé ou déverrouillé.
   }
 
   @Override
   public boolean isCredentialsNonExpired() {
     return true;
+    //Indique si les informations d'identification de l'utilisateur (mot de passe) ont expiré.
   }
 
   @Override
   public boolean isEnabled() {
     return true;
+    //Indique si l'utilisateur est activé ou désactivé.
   }
 
   @Override

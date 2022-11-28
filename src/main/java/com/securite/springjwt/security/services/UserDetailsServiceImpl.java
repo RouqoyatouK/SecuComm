@@ -12,6 +12,9 @@ import com.securite.springjwt.repository.UserRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
+
+  /*L'interface a une méthode pour charger l'utilisateur par nom d' utilisateur et renvoie
+  un UserDetailsobjet que Spring Security peut utiliser pour l'authentification et la validation.*/
   @Autowired
   UserRepository userRepository;
 

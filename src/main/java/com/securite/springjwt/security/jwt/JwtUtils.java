@@ -16,17 +16,19 @@ import io.jsonwebtoken.*;
 public class JwtUtils {
   private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-  @Value("${bezkoder.app.jwtSecret}")
+  @Value("${secucom.app.jwtSecret}")
   private String jwtSecret;
 
-  @Value("${bezkoder.app.jwtExpirationMs}")
+  @Value("${secucom.app.jwtExpirationMs}")
   private int jwtExpirationMs;
 
-  @Value("bezkoder")
+  @Value("${secucom.app.jwtCookieName}")
   private String jwtCookie;
 
 
   public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
+
+    //JwtUtilsfournit des méthodes pour générer, analyser, valider JWT
     String jwt = generateTokenFromUsername(userPrincipal.getUsername());
     ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
     return cookie;
